@@ -31,7 +31,7 @@ program
             throw new InvalidArgumentError('Encoded context malformed');
         }
     })
-    .action((code: number, context: object) => {
+    .action((code: number, context: Record<string, unknown>) => {
         const message = getHumanReadableErrorMessage(code as SolanaErrorCode, context);
         console.log(`
 ${

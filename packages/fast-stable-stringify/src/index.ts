@@ -10,7 +10,7 @@ const objKeys =
     };
 
 function stringify(val: unknown, isArrayProp: boolean) {
-    let i, max, str, keys, key, propVal, toStr;
+    let str, keys, propVal, toStr;
     if (val === true) {
         return 'true';
     }
@@ -26,33 +26,28 @@ function stringify(val: unknown, isArrayProp: boolean) {
             } else {
                 toStr = objToString.call(val);
                 if (toStr === '[object Array]') {
-                    str = '[';
-                    max = (val as unknown[]).length - 1;
-                    for (i = 0; i < max; i++) {
-                        str += stringify((val as unknown[])[i], true) + ',';
-                    }
-                    if (max > -1) {
-                        str += stringify((val as unknown[])[i], true);
-                    }
-                    return str + ']';
+                    const array = val as unknown[];
+                    const items = array
+                        .map((item) => {
+                            const arrayVal = stringify(item, true) as string;
+                            return arrayVal !== undefined ? arrayVal : 'null';
+                        })
+                        .join(',');
+                    return `[${items}]`;
                 } else if (toStr === '[object Object]') {
                     // only object is left
-                    keys = objKeys(val).sort();
-                    max = keys.length;
-                    str = '';
-                    i = 0;
-                    while (i < max) {
-                        key = keys[i];
-                        propVal = stringify((val as Record<typeof key, unknown>)[key], false);
-                        if (propVal !== undefined) {
-                            if (str) {
-                                str += ',';
-                            }
-                            str += JSON.stringify(key) + ':' + propVal;
-                        }
-                        i++;
-                    }
-                    return '{' + str + '}';
+                    keys = objKeys(val as Record<string, unknown>).sort();
+
+                    str = keys
+                        .map((key) => {
+                            propVal = stringify((val as Record<string, unknown>)[key], false) as string;
+                            return propVal !== undefined
+                                ? `${key}:${propVal}`
+                                : undefined;
+                        })
+                        .filter((item): item is string => item !== undefined)
+                        .join(',');
+                    return `{${str}}`;
                 } else {
                     return JSON.stringify(val);
                 }
@@ -76,7 +71,7 @@ export default function (
 ): undefined;
 export default function (val: unknown): string;
 export default function (val: unknown): string | undefined {
-    const returnVal = stringify(val, false);
+    const returnVal = stringify(val, false) as string;
     if (returnVal !== undefined) {
         return '' + returnVal;
     }

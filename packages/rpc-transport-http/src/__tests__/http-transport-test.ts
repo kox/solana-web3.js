@@ -71,7 +71,7 @@ describe('createHttpTransport', () => {
                 thrownError = e as SolanaError<typeof SOLANA_ERROR__RPC__TRANSPORT_HTTP_ERROR>;
             }
             expect(thrownError).toBeDefined();
-            expect(`${thrownError.context.headers}`).not.toMatch(/doNotLog/);
+            expect(`${JSON.stringify(thrownError.context.headers)}`).not.toMatch(/doNotLog/);
         });
     });
     describe('when the transport fatals', () => {

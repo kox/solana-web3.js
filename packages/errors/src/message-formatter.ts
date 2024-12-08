@@ -16,7 +16,7 @@ const TYPE = 't';
 
 export function getHumanReadableErrorMessage<TErrorCode extends SolanaErrorCode>(
     code: TErrorCode,
-    context: object = {},
+    context: Record<string, unknown> = {}
 ): string {
     const messageFormatString = SolanaErrorMessages[code];
     if (messageFormatString.length === 0) {
@@ -27,9 +27,16 @@ export function getHumanReadableErrorMessage<TErrorCode extends SolanaErrorCode>
         if (state[TYPE] === StateType.Variable) {
             const variableName = messageFormatString.slice(state[START_INDEX] + 1, endIndex);
 
-            fragments.push(
-                variableName in context ? `${context[variableName as keyof typeof context]}` : `$${variableName}`,
-            );
+            if (variableName in context) {
+                const value = context[variableName];
+                fragments.push(
+                    typeof value === 'string' || typeof value === 'number' || typeof value === 'boolean'
+                        ? `${value}`
+                        : `$${variableName}`
+                );
+            } else {
+                fragments.push(`$${variableName}`);
+            }
         } else if (state[TYPE] === StateType.Text) {
             fragments.push(messageFormatString.slice(state[START_INDEX], endIndex));
         }
